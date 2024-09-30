@@ -7,6 +7,7 @@ universe v
 inductive FreeMagma (α : Type u)
   | Leaf : α → FreeMagma α
   | Fork : FreeMagma α → FreeMagma α → FreeMagma α
+deriving DecidableEq, Repr
 
 infixl:65 " ⋆ " => FreeMagma.Fork
 def Lf {α : Type u} : (α → FreeMagma α) := FreeMagma.Leaf
