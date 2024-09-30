@@ -69,20 +69,25 @@ def unexpandLeaf : Unexpander
 @[app_unexpander FreeMagma.Fork]
 def unexpandFork : Unexpander
   | `($(_) magmaterm{$l:magma_term} magmaterm{$r:magma_term}) =>
-    `(term| magmaterm{($l ∘ $r)})
+    `(term| magmaterm{$l ∘ $r})
   | _ => throw ()
 
 @[app_unexpander MagmaLaw.mk]
 def unexpandMagmaLaw : Unexpander
-  | `($(_) magmaterm{($l:magma_term)} magmaterm{($r:magma_term)}) => do
-    `(magmalaw{$l ≃ $r})
+  | `(term|$(_) magmaterm{$l:magma_term} magmaterm{$r:magma_term}) => do
+    `(term|magmalaw{$l ≃ $r})
   | _ => throw ()
 
+-- magmaterm{(x ∘ (y ∘ (z ∘ zks)))} : FreeMagma String
 #check magmaterm{x ∘ y ∘ (z ∘ zks)}
+
+-- magmalaw{x ∘ y ∘ z ≃ z} : MagmaLaw String
 #check magmalaw{x ∘ y ∘ z ≃ z}
 
+-- magmalaw{x ∘ y ≃ y ∘ x} : MagmaLaw Nat
 #reduce reduce_law magmalaw{x ∘ y ≃ y ∘ x}
 
+-- magmalaw{x ∘ y ≃ y ∘ x} : MagmaLaw Nat
 #check MagmaLaw.mk
   (FreeMagma.Fork (FreeMagma.Leaf 0) (FreeMagma.Leaf 1))
   (FreeMagma.Fork (FreeMagma.Leaf 1) (FreeMagma.Leaf 0))
