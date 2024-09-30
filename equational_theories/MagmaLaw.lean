@@ -1,5 +1,7 @@
 import Lean
 import equational_theories.FreeMagma
+import Mathlib.Order.Basic
+
 
 open Lean Elab Parser Meta
 
@@ -19,8 +21,8 @@ macro_rules
   | `(magmaterm{($t:magma_term)}) => `(magmaterm{$t})
 
 
-inductive MagmaLaw (α : Type) where
-  | mk (lhs : FreeMagma α) (rhs : FreeMagma α)
+structure MagmaLaw (α : Type) where
+  mk :: (lhs : FreeMagma α) (rhs : FreeMagma α)
 deriving DecidableEq, Repr
 
 macro_rules
@@ -91,3 +93,34 @@ def unexpandMagmaLaw : Unexpander
 #check MagmaLaw.mk
   (FreeMagma.Fork (FreeMagma.Leaf 0) (FreeMagma.Leaf 1))
   (FreeMagma.Fork (FreeMagma.Leaf 1) (FreeMagma.Leaf 0))
+
+def MagmaLaw.holdsInMagma {α:Type} (G:Type) [Magma G] (law:MagmaLaw α) : Prop :=
+  ∀ (f: α → G), law.lhs.evalInMagma f = law.rhs.evalInMagma f
+
+infix:50 " ⊧ " => MagmaLaw.holdsInMagma
+
+instance {α :Type}: Preorder (MagmaLaw α) where
+  le l r := ∀ (G:Type) [Magma G], G ⊧ l → G ⊧ r
+  le_refl a := by
+    intro G _
+    exact id
+  le_trans := by
+    intro a b c hab hbc
+    intro G _ h
+    apply hbc G
+    exact hab G h
+
+example :∀ law, magmalaw{x ≃ y} ≤ law := by
+  intro right G _
+  dsimp [MagmaLaw.holdsInMagma, FreeMagma.evalInMagma]
+  intro h f
+  generalize right.lhs.evalInMagma f = a
+  generalize right.rhs.evalInMagma f = b
+  specialize h (fun x => if x = "x" then a else b)
+  simp only [↓reduceIte, String.reduceEq] at h
+  exact h
+
+example : ∀ law, law ≤ magmalaw{x ≃ x} := by
+  intro left G _
+  intro _ f
+  rfl

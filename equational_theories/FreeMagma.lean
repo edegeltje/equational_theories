@@ -9,6 +9,7 @@ inductive FreeMagma (α : Type u)
   | Fork : FreeMagma α → FreeMagma α → FreeMagma α
 deriving DecidableEq, Repr
 
+namespace FreeMagma
 infixl:65 " ⋆ " => FreeMagma.Fork
 def Lf {α : Type u} : (α → FreeMagma α) := FreeMagma.Leaf
 
@@ -21,7 +22,7 @@ def evalInMagma {α : Type u} {G : Type v} [Magma G] (f : α -> G) : FreeMagma �
   | FreeMagma.Fork lchild rchild => (evalInMagma f lchild) ∘ (evalInMagma f rchild)
 
 theorem ExpressionEqualsAnything_implies_Equation2 (G: Type u) [Magma G]
-  : (∃ n : Nat, ∃ expr : FreeMagma (Fin n), ∀ x : G, ∀ sub : Fin n → G, x = evalInMagma sub expr) → Equation2 G := by
+  : (∃ n : Nat, ∃ expr : FreeMagma (Fin n), ∀ x : G, ∀ sub : Fin n → G, x = expr.evalInMagma sub) → Equation2 G := by
   intros ex x y
   let ⟨n, expr, univ⟩ := ex
   let constx : Fin n → G := fun _ ↦ x
@@ -42,3 +43,5 @@ theorem Equation514_implies_Equation2 (G : Type u) [Magma G]
     Lf 0 ⋆ (Lf 0 ⋆ (Lf 0 ⋆ Lf 0)), -- The syntactic representation of y ∘ (y ∘ (y ∘ y)))
     fun k sub ↦ univ k (sub 0)
   ⟩
+
+end FreeMagma
